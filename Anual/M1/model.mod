@@ -26,7 +26,7 @@ set Sem ;
 ##############################
 
 # m grande
-param 0;
+param M;
 
 # Demandas
 param Demanda{Dias,Bloques} >= 0;
