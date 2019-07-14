@@ -64,7 +64,7 @@ param CtoEgresoRotativo >= 0 ;
 param NivServicio >= 0 ;
 
 # Minimo rotativos (puede ser y no)
-# param MinRotativos >= 0 ;
+param MinRotativos >= 0 ;
 
 
 ##############################
@@ -336,17 +336,17 @@ subject to condicionInicialRot08 {t in TMJ05, s in Sem}: YMJ7D25[0,t,s] = 0 ;
 subject to minimoNivelServicio {d in Dias, h in Bloques}: Oferta[d,h] >= NivServicio*Demanda[d,h] ;
 
 # R23. Minimo de Rotativos
-# subject to minimoRotativos {d in Dias}:
-#    sum{s in Sem} (
-#        sum{t in TFT09} YFT4D45[d,t,s] +
-#        sum{t in TFT09} YFT7D45[d,t,s] +
-#        sum{t in TFT08} YFT4D40[d,t,s] +
-#        sum{t in TFT08} YFT7D40[d,t,s] +
-#        sum{t in TMJ06} YMJ4D30[d,t,s] +
-#        sum{t in TMJ06} YMJ7D30[d,t,s] +
-#        sum{t in TMJ05} YMJ4D25[d,t,s] +
-#        sum{t in TMJ05} YMJ7D25[d,t,s] 
-#    )>= MinRotativos ;
+subject to minimoRotativos {d in Dias}:
+    sum{s in Sem} (
+        sum{t in TFT09} YFT4D45[d,t,s] +
+        sum{t in TFT09} YFT7D45[d,t,s] +
+        sum{t in TFT08} YFT4D40[d,t,s] +
+        sum{t in TFT08} YFT7D40[d,t,s] +
+        sum{t in TMJ06} YMJ4D30[d,t,s] +
+        sum{t in TMJ06} YMJ7D30[d,t,s] +
+        sum{t in TMJ05} YMJ4D25[d,t,s] +
+        sum{t in TMJ05} YMJ7D25[d,t,s] 
+    )>= MinRotativos ;
 
 # R24. Minimo de personal mientras la tienda esta abierta
 subject to minimoPersonal {d in Dias, h in Bloques}: Oferta[d,h] >= 1 ;
