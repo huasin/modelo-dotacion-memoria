@@ -8,6 +8,7 @@ set Dias_0 ;
 set DiasIngreso ;
 set DiasEgreso ;
 set Bloques ;
+set BloquesAbierto ;
 
 # Cantidad de turnos segun horas jornada y horas diarias
 set TFT09 ;
@@ -145,11 +146,52 @@ var HrsUnder {Dias,Bloques} >= 0 ;
 
 
 ##############################
-### FUNCIÓN OBJETIVO
+### FUNCION OBJETIVO
 ##############################
 
-# Hay que cambiar esta FO
-minimize fun_obj: sum{d in Dias, h in Bloques} (5*HrsOver[d,h] + HrsUnder[d,h]);
+# Se minimizan 3 costos diferentes
+minimize fun_obj:
+    min (
+        sum{d in Dias, h in Bloques} (HrsOver[d,t]*CtoOver+HrsUnder[d,t]*CtoUnder) +
+        sum{d in DiasIngreso} (
+            sum{t in TFT09} YmasFTLV45[d,t]*CtoIngresoFT +
+            sum{t in TFT08} YmasFTLV40[d,t]*CtoIngresoFT +
+            sum{t in TMJ06} YmasMJLV30[d,t]*CtoIngresoMJ +
+            sum{t in TMJ05} YmasMJLV25[d,t]*CtoIngresoMJ +
+            sum{t in TPT10} YmasPTVS20[d,t]*CtoIngresoPT +
+            sum{t in TPT10} YmasPTSD20[d,t]*CtoIngresoPT +
+            sum{t in TPT09} YmasPTVS18[d,t]*CtoIngresoPT +
+            sum{t in TPT09} YmasPTSD18[d,t]*CtoIngresoPT +
+            sum{t in TPT10} YmasPTD10 [d,t]*CtoIngresoPT +
+            sum{t in TFT09, s in Sem} YmasFT4D45[d,t,s]*CtoIngresoFT +
+            sum{t in TFT09, s in Sem} YmasFT7D45[d,t,s]*CtoIngresoFT +
+            sum{t in TFT08, s in Sem} YmasFT4D40[d,t,s]*CtoIngresoFT +
+            sum{t in TFT08, s in Sem} YmasFT7D40[d,t,s]*CtoIngresoFT +
+            sum{t in TMJ06, s in Sem} YmasMJ4D30[d,t,s]*CtoIngresoFT +
+            sum{t in TMJ06, s in Sem} YmasMJ7D30[d,t,s]*CtoIngresoFT +
+            sum{t in TMJ05, s in Sem} YmasMJ4D25[d,t,s]*CtoIngresoFT +
+            sum{t in TMJ05, s in Sem} YmasMJ7D25[d,t,s]*CtoIngresoFT
+        ) +
+        sum{d in DiasEgreso} (
+            sum{t in TFT09} YmenosFTLV45[d,t]*CtoIngresoFT +
+            sum{t in TFT08} YmenosFTLV40[d,t]*CtoIngresoFT +
+            sum{t in TMJ06} YmenosMJLV30[d,t]*CtoIngresoMJ +
+            sum{t in TMJ05} YmenosMJLV25[d,t]*CtoIngresoMJ +
+            sum{t in TPT10} YmenosPTVS20[d,t]*CtoIngresoPT +
+            sum{t in TPT10} YmenosPTSD20[d,t]*CtoIngresoPT +
+            sum{t in TPT09} YmenosPTVS18[d,t]*CtoIngresoPT +
+            sum{t in TPT09} YmenosPTSD18[d,t]*CtoIngresoPT +
+            sum{t in TPT10} YmenosPTD10 [d,t]*CtoIngresoPT +
+            sum{t in TFT09, s in Sem} YmenosFT4D45[d,t,s]*CtoIngresoFT*CtoEgresoRotativo +
+            sum{t in TFT09, s in Sem} YmenosFT7D45[d,t,s]*CtoIngresoFT*CtoEgresoRotativo +
+            sum{t in TFT08, s in Sem} YmenosFT4D40[d,t,s]*CtoIngresoFT*CtoEgresoRotativo +
+            sum{t in TFT08, s in Sem} YmenosFT7D40[d,t,s]*CtoIngresoFT*CtoEgresoRotativo +
+            sum{t in TMJ06, s in Sem} YmenosMJ4D30[d,t,s]*CtoIngresoFT*CtoEgresoRotativo +
+            sum{t in TMJ06, s in Sem} YmenosMJ7D30[d,t,s]*CtoIngresoFT*CtoEgresoRotativo +
+            sum{t in TMJ05, s in Sem} YmenosMJ4D25[d,t,s]*CtoIngresoFT*CtoEgresoRotativo +
+            sum{t in TMJ05, s in Sem} YmenosMJ7D25[d,t,s]*CtoIngresoFT*CtoEgresoRotativo
+        )
+    )
 
 ##############################
 ### RESTRICCIONES
@@ -183,114 +225,128 @@ subject to relDemanda {d in Dias, h in Bloques}:
     Oferta[d,h] + HrsUnder[d,h] - HrsOver[d,h] = Demanda[d,h] ;
 
 # R12. Flujo de Personal
-subject to flujo1-01 {d in DiasIngreso union DiasEgreso, t in TFT09}: YFTLV45[d,t] = YFTLV45[d,t-1] + YmasFTLV45[d,t] - YmenosFTLV45[d,t]
-subject to flujo1-02 {d in DiasIngreso union DiasEgreso, t in TFT08}: YFTLV40[d,t] = YFTLV40[d,t-1] + YmasFTLV40[d,t] - YmenosFTLV40[d,t]
-subject to flujo1-03 {d in DiasIngreso union DiasEgreso, t in TMJ06}: YMJLV30[d,t] = YMJLV30[d,t-1] + YmasMJLV30[d,t] - YmenosMJLV30[d,t]
-subject to flujo1-04 {d in DiasIngreso union DiasEgreso, t in TMJ05}: YMJLV25[d,t] = YMJLV25[d,t-1] + YmasMJLV25[d,t] - YmenosMJLV25[d,t]
-subject to flujo1-05 {d in DiasIngreso union DiasEgreso, t in TPT10}: YPTVS20[d,t] = YPTVS20[d,t-1] + YmasPTVS20[d,t] - YmenosPTVS20[d,t]
-subject to flujo1-06 {d in DiasIngreso union DiasEgreso, t in TPT10}: YPTSD20[d,t] = YPTSD20[d,t-1] + YmasPTSD20[d,t] - YmenosPTSD20[d,t]
-subject to flujo1-07 {d in DiasIngreso union DiasEgreso, t in TPT09}: YPTVS18[d,t] = YPTVS18[d,t-1] + YmasPTVS18[d,t] - YmenosPTVS18[d,t]
-subject to flujo1-08 {d in DiasIngreso union DiasEgreso, t in TPT09}: YPTSD18[d,t] = YPTSD18[d,t-1] + YmasPTSD18[d,t] - YmenosPTSD18[d,t]
-subject to flujo1-09 {d in DiasIngreso union DiasEgreso, t in TPT10}: YPTD10 [d,t] = YPTD10 [d,t-1] + YmasPTD10 [d,t] - YmenosPTD10 [d,t]
+subject to flujo1-01 {d in DiasIngreso union DiasEgreso, t in TFT09}: YFTLV45[d,t] = YFTLV45[d,t-1] + YmasFTLV45[d,t] - YmenosFTLV45[d,t] ;
+subject to flujo1-02 {d in DiasIngreso union DiasEgreso, t in TFT08}: YFTLV40[d,t] = YFTLV40[d,t-1] + YmasFTLV40[d,t] - YmenosFTLV40[d,t] ;
+subject to flujo1-03 {d in DiasIngreso union DiasEgreso, t in TMJ06}: YMJLV30[d,t] = YMJLV30[d,t-1] + YmasMJLV30[d,t] - YmenosMJLV30[d,t] ;
+subject to flujo1-04 {d in DiasIngreso union DiasEgreso, t in TMJ05}: YMJLV25[d,t] = YMJLV25[d,t-1] + YmasMJLV25[d,t] - YmenosMJLV25[d,t] ;
+subject to flujo1-05 {d in DiasIngreso union DiasEgreso, t in TPT10}: YPTVS20[d,t] = YPTVS20[d,t-1] + YmasPTVS20[d,t] - YmenosPTVS20[d,t] ;
+subject to flujo1-06 {d in DiasIngreso union DiasEgreso, t in TPT10}: YPTSD20[d,t] = YPTSD20[d,t-1] + YmasPTSD20[d,t] - YmenosPTSD20[d,t] ;
+subject to flujo1-07 {d in DiasIngreso union DiasEgreso, t in TPT09}: YPTVS18[d,t] = YPTVS18[d,t-1] + YmasPTVS18[d,t] - YmenosPTVS18[d,t] ;
+subject to flujo1-08 {d in DiasIngreso union DiasEgreso, t in TPT09}: YPTSD18[d,t] = YPTSD18[d,t-1] + YmasPTSD18[d,t] - YmenosPTSD18[d,t] ;
+subject to flujo1-09 {d in DiasIngreso union DiasEgreso, t in TPT10}: YPTD10 [d,t] = YPTD10 [d,t-1] + YmasPTD10 [d,t] - YmenosPTD10 [d,t] ;
 
 # R13.
-subject to flujo2-01 {d in DiasIngreso diff DiasEgreso, t in TFT09}: YFTLV45[d,t] = YFTLV45[d-1,t] + YmasFTLV45[d,t]
-subject to flujo2-02 {d in DiasIngreso diff DiasEgreso, t in TFT08}: YFTLV40[d,t] = YFTLV40[d-1,t] + YmasFTLV40[d,t]
-subject to flujo2-03 {d in DiasIngreso diff DiasEgreso, t in TMJ06}: YMJLV30[d,t] = YMJLV30[d-1,t] + YmasMJLV30[d,t]
-subject to flujo2-04 {d in DiasIngreso diff DiasEgreso, t in TMJ05}: YMJLV25[d,t] = YMJLV25[d-1,t] + YmasMJLV25[d,t]
-subject to flujo2-05 {d in DiasIngreso diff DiasEgreso, t in TPT10}: YPTVS20[d,t] = YPTVS20[d-1,t] + YmasPTVS20[d,t]
-subject to flujo2-06 {d in DiasIngreso diff DiasEgreso, t in TPT10}: YPTSD20[d,t] = YPTSD20[d-1,t] + YmasPTSD20[d,t]
-subject to flujo2-07 {d in DiasIngreso diff DiasEgreso, t in TPT09}: YPTVS18[d,t] = YPTVS18[d-1,t] + YmasPTVS18[d,t]
-subject to flujo2-08 {d in DiasIngreso diff DiasEgreso, t in TPT09}: YPTSD18[d,t] = YPTSD18[d-1,t] + YmasPTSD18[d,t]
-subject to flujo2-09 {d in DiasIngreso diff DiasEgreso, t in TPT10}: YPTD10 [d,t] = YPTD10 [d-1,t] + YmasPTD10 [d,t]
+subject to flujo2-01 {d in DiasIngreso diff DiasEgreso, t in TFT09}: YFTLV45[d,t] = YFTLV45[d-1,t] + YmasFTLV45[d,t] ;
+subject to flujo2-02 {d in DiasIngreso diff DiasEgreso, t in TFT08}: YFTLV40[d,t] = YFTLV40[d-1,t] + YmasFTLV40[d,t] ;
+subject to flujo2-03 {d in DiasIngreso diff DiasEgreso, t in TMJ06}: YMJLV30[d,t] = YMJLV30[d-1,t] + YmasMJLV30[d,t] ;
+subject to flujo2-04 {d in DiasIngreso diff DiasEgreso, t in TMJ05}: YMJLV25[d,t] = YMJLV25[d-1,t] + YmasMJLV25[d,t] ;
+subject to flujo2-05 {d in DiasIngreso diff DiasEgreso, t in TPT10}: YPTVS20[d,t] = YPTVS20[d-1,t] + YmasPTVS20[d,t] ;
+subject to flujo2-06 {d in DiasIngreso diff DiasEgreso, t in TPT10}: YPTSD20[d,t] = YPTSD20[d-1,t] + YmasPTSD20[d,t] ;
+subject to flujo2-07 {d in DiasIngreso diff DiasEgreso, t in TPT09}: YPTVS18[d,t] = YPTVS18[d-1,t] + YmasPTVS18[d,t] ;
+subject to flujo2-08 {d in DiasIngreso diff DiasEgreso, t in TPT09}: YPTSD18[d,t] = YPTSD18[d-1,t] + YmasPTSD18[d,t] ;
+subject to flujo2-09 {d in DiasIngreso diff DiasEgreso, t in TPT10}: YPTD10 [d,t] = YPTD10 [d-1,t] + YmasPTD10 [d,t] ;
 
 # R14.
-subject to flujo3-01 {d in DiasEgreso diff DiasIngreso, t in TFT09}: YFTLV45[d,t] = YFTLV45[d-1,t] - YmenosFTLV45[d,t]
-subject to flujo3-02 {d in DiasEgreso diff DiasIngreso, t in TFT08}: YFTLV40[d,t] = YFTLV40[d-1,t] - YmenosFTLV40[d,t]
-subject to flujo3-03 {d in DiasEgreso diff DiasIngreso, t in TMJ06}: YMJLV30[d,t] = YMJLV30[d-1,t] - YmenosMJLV30[d,t]
-subject to flujo3-04 {d in DiasEgreso diff DiasIngreso, t in TMJ05}: YMJLV25[d,t] = YMJLV25[d-1,t] - YmenosMJLV25[d,t]
-subject to flujo3-05 {d in DiasEgreso diff DiasIngreso, t in TPT10}: YPTVS20[d,t] = YPTVS20[d-1,t] - YmenosPTVS20[d,t]
-subject to flujo3-06 {d in DiasEgreso diff DiasIngreso, t in TPT10}: YPTSD20[d,t] = YPTSD20[d-1,t] - YmenosPTSD20[d,t]
-subject to flujo3-07 {d in DiasEgreso diff DiasIngreso, t in TPT09}: YPTVS18[d,t] = YPTVS18[d-1,t] - YmenosPTVS18[d,t]
-subject to flujo3-08 {d in DiasEgreso diff DiasIngreso, t in TPT09}: YPTSD18[d,t] = YPTSD18[d-1,t] - YmenosPTSD18[d,t]
-subject to flujo3-09 {d in DiasEgreso diff DiasIngreso, t in TPT10}: YPTD10 [d,t] = YPTD10 [d-1,t] - YmenosPTD10 [d,t]
+subject to flujo3-01 {d in DiasEgreso diff DiasIngreso, t in TFT09}: YFTLV45[d,t] = YFTLV45[d-1,t] - YmenosFTLV45[d,t] ;
+subject to flujo3-02 {d in DiasEgreso diff DiasIngreso, t in TFT08}: YFTLV40[d,t] = YFTLV40[d-1,t] - YmenosFTLV40[d,t] ;
+subject to flujo3-03 {d in DiasEgreso diff DiasIngreso, t in TMJ06}: YMJLV30[d,t] = YMJLV30[d-1,t] - YmenosMJLV30[d,t] ;
+subject to flujo3-04 {d in DiasEgreso diff DiasIngreso, t in TMJ05}: YMJLV25[d,t] = YMJLV25[d-1,t] - YmenosMJLV25[d,t] ;
+subject to flujo3-05 {d in DiasEgreso diff DiasIngreso, t in TPT10}: YPTVS20[d,t] = YPTVS20[d-1,t] - YmenosPTVS20[d,t] ;
+subject to flujo3-06 {d in DiasEgreso diff DiasIngreso, t in TPT10}: YPTSD20[d,t] = YPTSD20[d-1,t] - YmenosPTSD20[d,t] ;
+subject to flujo3-07 {d in DiasEgreso diff DiasIngreso, t in TPT09}: YPTVS18[d,t] = YPTVS18[d-1,t] - YmenosPTVS18[d,t] ;
+subject to flujo3-08 {d in DiasEgreso diff DiasIngreso, t in TPT09}: YPTSD18[d,t] = YPTSD18[d-1,t] - YmenosPTSD18[d,t] ;
+subject to flujo3-09 {d in DiasEgreso diff DiasIngreso, t in TPT10}: YPTD10 [d,t] = YPTD10 [d-1,t] - YmenosPTD10 [d,t] ;
 
 # R15.
-subject to flujo4-01 {d in Dias diff DiasIngreso diff DiasEgreso, t in TFT09}: YFTLV45[d,t] = YFTLV45[d,t-1]
-subject to flujo4-02 {d in Dias diff DiasIngreso diff DiasEgreso, t in TFT08}: YFTLV40[d,t] = YFTLV40[d,t-1]
-subject to flujo4-03 {d in Dias diff DiasIngreso diff DiasEgreso, t in TMJ06}: YMJLV30[d,t] = YMJLV30[d,t-1]
-subject to flujo4-04 {d in Dias diff DiasIngreso diff DiasEgreso, t in TMJ05}: YMJLV25[d,t] = YMJLV25[d,t-1]
-subject to flujo4-05 {d in Dias diff DiasIngreso diff DiasEgreso, t in TPT10}: YPTVS20[d,t] = YPTVS20[d,t-1]
-subject to flujo4-06 {d in Dias diff DiasIngreso diff DiasEgreso, t in TPT10}: YPTSD20[d,t] = YPTSD20[d,t-1]
-subject to flujo4-07 {d in Dias diff DiasIngreso diff DiasEgreso, t in TPT09}: YPTVS18[d,t] = YPTVS18[d,t-1]
-subject to flujo4-08 {d in Dias diff DiasIngreso diff DiasEgreso, t in TPT09}: YPTSD18[d,t] = YPTSD18[d,t-1]
-subject to flujo4-09 {d in Dias diff DiasIngreso diff DiasEgreso, t in TPT10}: YPTD10 [d,t] = YPTD10 [d,t-1]
+subject to flujo4-01 {d in Dias diff DiasIngreso diff DiasEgreso, t in TFT09}: YFTLV45[d,t] = YFTLV45[d,t-1] ;
+subject to flujo4-02 {d in Dias diff DiasIngreso diff DiasEgreso, t in TFT08}: YFTLV40[d,t] = YFTLV40[d,t-1] ;
+subject to flujo4-03 {d in Dias diff DiasIngreso diff DiasEgreso, t in TMJ06}: YMJLV30[d,t] = YMJLV30[d,t-1] ;
+subject to flujo4-04 {d in Dias diff DiasIngreso diff DiasEgreso, t in TMJ05}: YMJLV25[d,t] = YMJLV25[d,t-1] ;
+subject to flujo4-05 {d in Dias diff DiasIngreso diff DiasEgreso, t in TPT10}: YPTVS20[d,t] = YPTVS20[d,t-1] ;
+subject to flujo4-06 {d in Dias diff DiasIngreso diff DiasEgreso, t in TPT10}: YPTSD20[d,t] = YPTSD20[d,t-1] ;
+subject to flujo4-07 {d in Dias diff DiasIngreso diff DiasEgreso, t in TPT09}: YPTVS18[d,t] = YPTVS18[d,t-1] ;
+subject to flujo4-08 {d in Dias diff DiasIngreso diff DiasEgreso, t in TPT09}: YPTSD18[d,t] = YPTSD18[d,t-1] ;
+subject to flujo4-09 {d in Dias diff DiasIngreso diff DiasEgreso, t in TPT10}: YPTD10 [d,t] = YPTD10 [d,t-1] ;
 
 # R16. Rotativo
-subject to flujo5-01 {d in DiasIngreso union DiasEgreso, t in TFT09, s in Sem}: YFT4D45[d,t,s] = YFT4D45[d,t-1,s] + YmasFT4D45[d,t,s] - YmenosFTLV45[d,t,s]
-subject to flujo5-02 {d in DiasIngreso union DiasEgreso, t in TFT09, s in Sem}: YFT7D45[d,t,s] = YFT7D45[d,t-1,s] + YmasFT7D45[d,t,s] - YmenosFTLV45[d,t,s]
-subject to flujo5-03 {d in DiasIngreso union DiasEgreso, t in TFT08, s in Sem}: YFT4D40[d,t,s] = YFT4D40[d,t-1,s] + YmasFT4D40[d,t,s] - YmenosFTLV45[d,t,s]
-subject to flujo5-04 {d in DiasIngreso union DiasEgreso, t in TFT08, s in Sem}: YFT7D40[d,t,s] = YFT7D40[d,t-1,s] + YmasFT7D40[d,t,s] - YmenosFTLV45[d,t,s]
-subject to flujo5-05 {d in DiasIngreso union DiasEgreso, t in TMJ06, s in Sem}: YMJ4D30[d,t,s] = YMJ4D30[d,t-1,s] + YmasMJ4D30[d,t,s] - YmenosFTLV45[d,t,s]
-subject to flujo5-06 {d in DiasIngreso union DiasEgreso, t in TMJ06, s in Sem}: YMJ7D30[d,t,s] = YMJ7D30[d,t-1,s] + YmasMJ7D30[d,t,s] - YmenosFTLV45[d,t,s]
-subject to flujo5-07 {d in DiasIngreso union DiasEgreso, t in TMJ05, s in Sem}: YMJ4D25[d,t,s] = YMJ4D25[d,t-1,s] + YmasMJ4D25[d,t,s] - YmenosFTLV45[d,t,s]
-subject to flujo5-08 {d in DiasIngreso union DiasEgreso, t in TMJ05, s in Sem}: YMJ7D25[d,t,s] = YMJ7D25[d,t-1,s] + YmasMJ7D25[d,t,s] - YmenosFTLV45[d,t,s]
+subject to flujo5-01 {d in DiasIngreso union DiasEgreso, t in TFT09, s in Sem}: YFT4D45[d,t,s] = YFT4D45[d,t-1,s] + YmasFT4D45[d,t,s] - YmenosFTLV45[d,t,s] ;
+subject to flujo5-02 {d in DiasIngreso union DiasEgreso, t in TFT09, s in Sem}: YFT7D45[d,t,s] = YFT7D45[d,t-1,s] + YmasFT7D45[d,t,s] - YmenosFTLV45[d,t,s] ;
+subject to flujo5-03 {d in DiasIngreso union DiasEgreso, t in TFT08, s in Sem}: YFT4D40[d,t,s] = YFT4D40[d,t-1,s] + YmasFT4D40[d,t,s] - YmenosFTLV45[d,t,s] ;
+subject to flujo5-04 {d in DiasIngreso union DiasEgreso, t in TFT08, s in Sem}: YFT7D40[d,t,s] = YFT7D40[d,t-1,s] + YmasFT7D40[d,t,s] - YmenosFTLV45[d,t,s] ;
+subject to flujo5-05 {d in DiasIngreso union DiasEgreso, t in TMJ06, s in Sem}: YMJ4D30[d,t,s] = YMJ4D30[d,t-1,s] + YmasMJ4D30[d,t,s] - YmenosFTLV45[d,t,s] ;
+subject to flujo5-06 {d in DiasIngreso union DiasEgreso, t in TMJ06, s in Sem}: YMJ7D30[d,t,s] = YMJ7D30[d,t-1,s] + YmasMJ7D30[d,t,s] - YmenosFTLV45[d,t,s] ;
+subject to flujo5-07 {d in DiasIngreso union DiasEgreso, t in TMJ05, s in Sem}: YMJ4D25[d,t,s] = YMJ4D25[d,t-1,s] + YmasMJ4D25[d,t,s] - YmenosFTLV45[d,t,s] ;
+subject to flujo5-08 {d in DiasIngreso union DiasEgreso, t in TMJ05, s in Sem}: YMJ7D25[d,t,s] = YMJ7D25[d,t-1,s] + YmasMJ7D25[d,t,s] - YmenosFTLV45[d,t,s] ;
 
 # R17. Rotativo
-subject to flujo6-01 {d in DiasIngreso diff DiasEgreso, t in TFT09, s in Sem}: YFT4D45[d-1,t,s] + YmasFT4D45[d,t,s]
-subject to flujo6-02 {d in DiasIngreso diff DiasEgreso, t in TFT09, s in Sem}: YFT7D45[d-1,t,s] + YmasFT7D45[d,t,s]
-subject to flujo6-03 {d in DiasIngreso diff DiasEgreso, t in TFT08, s in Sem}: YFT4D40[d-1,t,s] + YmasFT4D40[d,t,s]
-subject to flujo6-04 {d in DiasIngreso diff DiasEgreso, t in TFT08, s in Sem}: YFT7D40[d-1,t,s] + YmasFT7D40[d,t,s]
-subject to flujo6-05 {d in DiasIngreso diff DiasEgreso, t in TMJ06, s in Sem}: YMJ4D30[d-1,t,s] + YmasMJ4D30[d,t,s]
-subject to flujo6-06 {d in DiasIngreso diff DiasEgreso, t in TMJ06, s in Sem}: YMJ7D30[d-1,t,s] + YmasMJ7D30[d,t,s]
-subject to flujo6-07 {d in DiasIngreso diff DiasEgreso, t in TMJ05, s in Sem}: YMJ4D25[d-1,t,s] + YmasMJ4D25[d,t,s]
-subject to flujo6-08 {d in DiasIngreso diff DiasEgreso, t in TMJ05, s in Sem}: YMJ7D25[d-1,t,s] + YmasMJ7D25[d,t,s]
+subject to flujo6-01 {d in DiasIngreso diff DiasEgreso, t in TFT09, s in Sem}: YFT4D45[d-1,t,s] + YmasFT4D45[d,t,s] ;
+subject to flujo6-02 {d in DiasIngreso diff DiasEgreso, t in TFT09, s in Sem}: YFT7D45[d-1,t,s] + YmasFT7D45[d,t,s] ;
+subject to flujo6-03 {d in DiasIngreso diff DiasEgreso, t in TFT08, s in Sem}: YFT4D40[d-1,t,s] + YmasFT4D40[d,t,s] ;
+subject to flujo6-04 {d in DiasIngreso diff DiasEgreso, t in TFT08, s in Sem}: YFT7D40[d-1,t,s] + YmasFT7D40[d,t,s] ;
+subject to flujo6-05 {d in DiasIngreso diff DiasEgreso, t in TMJ06, s in Sem}: YMJ4D30[d-1,t,s] + YmasMJ4D30[d,t,s] ;
+subject to flujo6-06 {d in DiasIngreso diff DiasEgreso, t in TMJ06, s in Sem}: YMJ7D30[d-1,t,s] + YmasMJ7D30[d,t,s] ;
+subject to flujo6-07 {d in DiasIngreso diff DiasEgreso, t in TMJ05, s in Sem}: YMJ4D25[d-1,t,s] + YmasMJ4D25[d,t,s] ;
+subject to flujo6-08 {d in DiasIngreso diff DiasEgreso, t in TMJ05, s in Sem}: YMJ7D25[d-1,t,s] + YmasMJ7D25[d,t,s] ;
 
 # R18. Rotativo
-subject to flujo7-01 {d in DiasEgreso diff DiasIngreso, t in TFT09, s in Sem}: YFT4D45[d-1,t,s] - YmenosFT4D45[d,t,s]
-subject to flujo7-02 {d in DiasEgreso diff DiasIngreso, t in TFT09, s in Sem}: YFT7D45[d-1,t,s] - YmenosFT7D45[d,t,s]
-subject to flujo7-03 {d in DiasEgreso diff DiasIngreso, t in TFT08, s in Sem}: YFT4D40[d-1,t,s] - YmenosFT4D40[d,t,s]
-subject to flujo7-04 {d in DiasEgreso diff DiasIngreso, t in TFT08, s in Sem}: YFT7D40[d-1,t,s] - YmenosFT7D40[d,t,s]
-subject to flujo7-05 {d in DiasEgreso diff DiasIngreso, t in TMJ06, s in Sem}: YMJ4D30[d-1,t,s] - YmenosMJ4D30[d,t,s]
-subject to flujo7-06 {d in DiasEgreso diff DiasIngreso, t in TMJ06, s in Sem}: YMJ7D30[d-1,t,s] - YmenosMJ7D30[d,t,s]
-subject to flujo7-07 {d in DiasEgreso diff DiasIngreso, t in TMJ05, s in Sem}: YMJ4D25[d-1,t,s] - YmenosMJ4D25[d,t,s]
-subject to flujo7-08 {d in DiasEgreso diff DiasIngreso, t in TMJ05, s in Sem}: YMJ7D25[d-1,t,s] - YmenosMJ7D25[d,t,s]
+subject to flujo7-01 {d in DiasEgreso diff DiasIngreso, t in TFT09, s in Sem}: YFT4D45[d-1,t,s] - YmenosFT4D45[d,t,s] ;
+subject to flujo7-02 {d in DiasEgreso diff DiasIngreso, t in TFT09, s in Sem}: YFT7D45[d-1,t,s] - YmenosFT7D45[d,t,s] ;
+subject to flujo7-03 {d in DiasEgreso diff DiasIngreso, t in TFT08, s in Sem}: YFT4D40[d-1,t,s] - YmenosFT4D40[d,t,s] ;
+subject to flujo7-04 {d in DiasEgreso diff DiasIngreso, t in TFT08, s in Sem}: YFT7D40[d-1,t,s] - YmenosFT7D40[d,t,s] ;
+subject to flujo7-05 {d in DiasEgreso diff DiasIngreso, t in TMJ06, s in Sem}: YMJ4D30[d-1,t,s] - YmenosMJ4D30[d,t,s] ;
+subject to flujo7-06 {d in DiasEgreso diff DiasIngreso, t in TMJ06, s in Sem}: YMJ7D30[d-1,t,s] - YmenosMJ7D30[d,t,s] ;
+subject to flujo7-07 {d in DiasEgreso diff DiasIngreso, t in TMJ05, s in Sem}: YMJ4D25[d-1,t,s] - YmenosMJ4D25[d,t,s] ;
+subject to flujo7-08 {d in DiasEgreso diff DiasIngreso, t in TMJ05, s in Sem}: YMJ7D25[d-1,t,s] - YmenosMJ7D25[d,t,s] ;
 
 # R19. Rotativo
-subject to flujo8-01 {d in Dias diff DiasIngreso diff DiasEgreso, t in TFT09, s in Sem}: YFT4D45[d,t,s] = YFT4D45[d,t-1,s]
-subject to flujo8-02 {d in Dias diff DiasIngreso diff DiasEgreso, t in TFT09, s in Sem}: YFT7D45[d,t,s] = YFT7D45[d,t-1,s]
-subject to flujo8-03 {d in Dias diff DiasIngreso diff DiasEgreso, t in TFT08, s in Sem}: YFT4D40[d,t,s] = YFT4D40[d,t-1,s]
-subject to flujo8-04 {d in Dias diff DiasIngreso diff DiasEgreso, t in TFT08, s in Sem}: YFT7D40[d,t,s] = YFT7D40[d,t-1,s]
-subject to flujo8-05 {d in Dias diff DiasIngreso diff DiasEgreso, t in TMJ06, s in Sem}: YMJ4D30[d,t,s] = YMJ4D30[d,t-1,s]
-subject to flujo8-06 {d in Dias diff DiasIngreso diff DiasEgreso, t in TMJ06, s in Sem}: YMJ7D30[d,t,s] = YMJ7D30[d,t-1,s]
-subject to flujo8-07 {d in Dias diff DiasIngreso diff DiasEgreso, t in TMJ05, s in Sem}: YMJ4D25[d,t,s] = YMJ4D25[d,t-1,s]
-subject to flujo8-08 {d in Dias diff DiasIngreso diff DiasEgreso, t in TMJ05, s in Sem}: YMJ7D25[d,t,s] = YMJ7D25[d,t-1,s]
+subject to flujo8-01 {d in Dias diff DiasIngreso diff DiasEgreso, t in TFT09, s in Sem}: YFT4D45[d,t,s] = YFT4D45[d,t-1,s] ;
+subject to flujo8-02 {d in Dias diff DiasIngreso diff DiasEgreso, t in TFT09, s in Sem}: YFT7D45[d,t,s] = YFT7D45[d,t-1,s] ;
+subject to flujo8-03 {d in Dias diff DiasIngreso diff DiasEgreso, t in TFT08, s in Sem}: YFT4D40[d,t,s] = YFT4D40[d,t-1,s] ;
+subject to flujo8-04 {d in Dias diff DiasIngreso diff DiasEgreso, t in TFT08, s in Sem}: YFT7D40[d,t,s] = YFT7D40[d,t-1,s] ;
+subject to flujo8-05 {d in Dias diff DiasIngreso diff DiasEgreso, t in TMJ06, s in Sem}: YMJ4D30[d,t,s] = YMJ4D30[d,t-1,s] ;
+subject to flujo8-06 {d in Dias diff DiasIngreso diff DiasEgreso, t in TMJ06, s in Sem}: YMJ7D30[d,t,s] = YMJ7D30[d,t-1,s] ;
+subject to flujo8-07 {d in Dias diff DiasIngreso diff DiasEgreso, t in TMJ05, s in Sem}: YMJ4D25[d,t,s] = YMJ4D25[d,t-1,s] ;
+subject to flujo8-08 {d in Dias diff DiasIngreso diff DiasEgreso, t in TMJ05, s in Sem}: YMJ7D25[d,t,s] = YMJ7D25[d,t-1,s] ;
 
 # R20. Condicion inicial personal Fijo
-subject to condicionInicialFijo01 {t in TFT09}: Y[0,t] = 0
-subject to condicionInicialFijo02 {t in TFT08}: Y[0,t] = 0
-subject to condicionInicialFijo03 {t in TMJ06}: Y[0,t] = 0
-subject to condicionInicialFijo04 {t in TMJ05}: Y[0,t] = 0
-subject to condicionInicialFijo05 {t in TPT10}: Y[0,t] = 0
-subject to condicionInicialFijo06 {t in TPT10}: Y[0,t] = 0
-subject to condicionInicialFijo07 {t in TPT09}: Y[0,t] = 0
-subject to condicionInicialFijo08 {t in TPT09}: Y[0,t] = 0
-subject to condicionInicialFijo09 {t in TPT10}: Y[0,t] = 0
+subject to condicionInicialFijo01 {t in TFT09}: YTFT09[0,t] = 0 ;
+subject to condicionInicialFijo02 {t in TFT08}: YTFT08[0,t] = 0 ;
+subject to condicionInicialFijo03 {t in TMJ06}: YTMJ06[0,t] = 0 ;
+subject to condicionInicialFijo04 {t in TMJ05}: YTMJ05[0,t] = 0 ;
+subject to condicionInicialFijo05 {t in TPT10}: YTPT10[0,t] = 0 ;
+subject to condicionInicialFijo06 {t in TPT10}: YTPT10[0,t] = 0 ;
+subject to condicionInicialFijo07 {t in TPT09}: YTPT09[0,t] = 0 ;
+subject to condicionInicialFijo08 {t in TPT09}: YTPT09[0,t] = 0 ;
+subject to condicionInicialFijo09 {t in TPT10}: YTPT10[0,t] = 0 ;
 
 # R21. Condicion inicial personal Rotativo
-subject to condicionInicialRot01 {t in TFT09, s in Sem}: Y[0,t,s] = 0
-subject to condicionInicialRot02 {t in TFT09, s in Sem}: Y[0,t,s] = 0
-subject to condicionInicialRot03 {t in TFT08, s in Sem}: Y[0,t,s] = 0
-subject to condicionInicialRot04 {t in TFT08, s in Sem}: Y[0,t,s] = 0
-subject to condicionInicialRot05 {t in TMJ06, s in Sem}: Y[0,t,s] = 0
-subject to condicionInicialRot06 {t in TMJ06, s in Sem}: Y[0,t,s] = 0
-subject to condicionInicialRot07 {t in TMJ05, s in Sem}: Y[0,t,s] = 0
-subject to condicionInicialRot08 {t in TMJ05, s in Sem}: Y[0,t,s] = 0
+subject to condicionInicialRot01 {t in TFT09, s in Sem}: YFT4D45[0,t,s] = 0 ;
+subject to condicionInicialRot02 {t in TFT09, s in Sem}: YFT7D45[0,t,s] = 0 ;
+subject to condicionInicialRot03 {t in TFT08, s in Sem}: YFT4D40[0,t,s] = 0 ;
+subject to condicionInicialRot04 {t in TFT08, s in Sem}: YFT7D40[0,t,s] = 0 ;
+subject to condicionInicialRot05 {t in TMJ06, s in Sem}: YMJ4D30[0,t,s] = 0 ;
+subject to condicionInicialRot06 {t in TMJ06, s in Sem}: YMJ7D30[0,t,s] = 0 ;
+subject to condicionInicialRot07 {t in TMJ05, s in Sem}: YMJ4D25[0,t,s] = 0 ;
+subject to condicionInicialRot08 {t in TMJ05, s in Sem}: YMJ7D25[0,t,s] = 0 ;
 
-# R22. Mínimo nivel del servicio
+# R22. Minimo nivel del servicio
+subject to minimoNivelServicio {d in Dias, h in Bloques}: Oferta[d,h] >= NivServicio*Demanda[d,h] ;
 
+# R23. Minimo de Rotativos
+# subject to minimoRotativos {d in Dias}:
+#    sum{s in Sem} (
+#        sum{t in TFT09} YFT4D45[d,t,s] +
+#        sum{t in TFT09} YFT7D45[d,t,s] +
+#        sum{t in TFT08} YFT4D40[d,t,s] +
+#        sum{t in TFT08} YFT7D40[d,t,s] +
+#        sum{t in TMJ06} YMJ4D30[d,t,s] +
+#        sum{t in TMJ06} YMJ7D30[d,t,s] +
+#        sum{t in TMJ05} YMJ4D25[d,t,s] +
+#        sum{t in TMJ05} YMJ7D25[d,t,s] 
+#    )>= MinRotativos ;
 
-
+# R24. Minimo de personal mientras la tienda esta abierta
+subject to minimoPersonal {d in Dias, h in Bloques}: Oferta[d,h] >= 1 ;
 
 
 
