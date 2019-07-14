@@ -6,8 +6,8 @@ Dada las definiciones de los requerimientos, se separa el modelo en dos diferent
 + Modelo Anual: calcula la dotación base para todo el año
 + Modelo Eventos: calcula la dotación de apoyos para eventos (CyberDay)
 
-Ahora dentro de Cada uno, se realizaron diferentes modelos, moviendo ciertos parámetros y costos con el fin de realizar un análisis de sensibilidad. Cada uno de los modelos se encuentra dentro de una carpeta que comienza con la letra "M" y que dentro tiene tres archivos:
+Ahora dentro de Cada uno, se realizaron diferentes modelos, moviendo ciertos parámetros y costos con el fin de realizar un análisis de sensibilidad. Cada uno de los modelos se encuentra dentro de una carpeta que comienza con la letra "M" del "Mall" o con "C" de "Centro" (dependiendo del tipo de tienda que es) y que dentro tiene tres archivos:
 
-+ model**.mod**: contiene el **modelo** propiamente tal.
-+ model**.dat**: contiene los **datos** que toma el modelo.
-+ model**.run**: contiene los **comandos** para ejecutar el modelo.
++ model.mod: contiene el **modelo** propiamente tal.
++ model.dat: contiene los **datos** que toma el modelo.
++ model.run: contiene los **comandos** para ejecutar el modelo.

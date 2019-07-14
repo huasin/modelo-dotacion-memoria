@@ -1,1 +1,30 @@
-#
+##############################
+### SOLVE THE MODEL
+##############################
+
+#option cplex_options 'primal integrality = 2e-09 mipgap=0.05'; #mipemphasis=1
+solve ;
+
+
+##############################
+### PRINT RESULTS
+##############################
+
+# Funcion Objetivo
+display fun_obj ;
+
+# Cantidad de horas utilidas
+display sum{d in Dias, h in Bloques} Oferta[d,h] ;
+
+# Cantidad de horas Over
+display sum{d in Dias, h in Bloques} HrsOver[d,h] ;
+
+# Cantidad de horas Under
+display sum{d in Dias, h in Bloques} HrsUnder[d,h] ;
+
+# Oferta para graficar
+display Oferta ;
+
+# Horas under y over para graficar ERROR
+display HrsUnder, HrsOver ;
+
