@@ -1,0 +1,2 @@
+# Modelo de Dotación óptima
+Los archivos aquí contenidos son los archivos realizados para mi memoria de título que consiste en encontrar la dotación óptima de personal para los retiro en tienda de una importante empresa de Retail.
