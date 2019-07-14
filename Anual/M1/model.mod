@@ -55,6 +55,9 @@ param CtoUnder >= 0 ;
 param CtoIngresoFT >= 0 ;
 param CtoIngresoMJ >= 0 ;
 param CtoIngresoPT >= 0 ;
+param CtoEgresoFT >= 0 ;
+param CtoEgresoMJ >= 0 ;
+param CtoEgresoPT >= 0 ;
 param CtoEgresoRotativo >= 0 ; 
 
 # Nivel de servicio
