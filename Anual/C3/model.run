@@ -1,0 +1,24 @@
+option cplex_options 'primal integrality = 2e-09 mipgap=0.05'; #mipemphasis=1
+solve ;
+
+display fun_obj ;
+display sum{d in D, h in H} B[d,h] ;
+display sum{d in D, h in H} HUNDER[d,h];
+display sum{d in D, h in H} HOVER[d,h];
+
+
+
+#display B;
+display {d in D} sum{h in H} HUNDER[d,h];
+display {d in D} sum{h in H} HOVER[d,h];
+
+display {h in H} sum{d in D} B[d,h];
+
+display YFTLV40;
+display YMJLV25;
+#display sum{d in D, t in TPT10} YPTVS20[d,t];
+#display sum{d in D, t in TPT10} YPTD10 [d,t];
+
+#
+#
+#display YMJ6X1 ;

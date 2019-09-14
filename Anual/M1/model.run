@@ -1,8 +1,11 @@
+model C:\Users\elias\Desktop\PPL\Anual\M1\model.mod
+data C:\Users\elias\Desktop\PPL\Anual\M1\model.dat
+
 ##############################
 ### SOLVE THE MODEL
 ##############################
 
-#option cplex_options 'primal integrality = 2e-09 mipgap=0.05'; #mipemphasis=1
+option cplex_options 'primal integrality = 2e-09 mipgap=0.05'; #mipemphasis=1
 solve ;
 
 

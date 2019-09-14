@@ -5,8 +5,8 @@
 # Temporalidad
 #set Dias ;
 #set Dias_0 ;
-set Dias = 1 .. 365;
-set Dias_0 = 0 .. 365;
+#set Dias = 1 .. 365;
+#set Dias_0 = 0 .. 365;
 set DiasIngreso ;
 set DiasEgreso ;
 set Bloques ;
